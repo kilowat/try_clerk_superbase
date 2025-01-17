@@ -1,8 +1,12 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:clerk_auth/clerk_auth.dart';
+import 'package:http/http.dart' as http;
 
 void main() async {
   await dotenv.load(fileName: ".env");
@@ -13,6 +17,7 @@ void main() async {
     publicKey: dotenv.get('CLERK_PUBLIC_KEY'),
     persistor: _Persistor(),
   );
+
   await api.initialize();
   await api.signOut();
   final response = await api.createSignIn(identifier: dotenv.get('USER_ID'));
@@ -24,16 +29,35 @@ void main() async {
     password: dotenv.get('USER_PASS'),
   );
 
-  final clerkToken = await api.sessionToken();
-  final sessionId = attemptResponse.client!.sessionIds.first;
   // final templateToken = await api.getTokenWithTemplate('supabase', sessionId);
-  // final getAccestoken = () => api.getTokenWithTemplate('supabase', sessionId);
+  getAccestoken() async {
+    final prefs = await SharedPreferences.getInstance();
+    final publicKeyHash = dotenv.get('CLERK_PUBLIC_KEY').hashCode;
+    final clerkClientToken =
+        prefs.getString('_clerkClientToken_$publicKeyHash');
+    final sessionId = attemptResponse.client!.sessionIds.first;
+    const templateName = 'supabase';
+    final headers = {
+      HttpHeaders.acceptHeader: 'application/json',
+      HttpHeaders.contentTypeHeader: 'application/x-www-form-urlencoded',
+      HttpHeaders.authorizationHeader: clerkClientToken!,
+    };
+
+    final url = Uri.https('neat-bull-18.clerk.accounts.dev',
+        'v1/client/sessions/$sessionId/tokens/$templateName');
+    final res = await http.post(
+      url,
+      headers: headers,
+    );
+    final supaBaseJwtToken = jsonDecode(res.body)['jwt'] as String;
+
+    return supaBaseJwtToken;
+  }
 
   await Supabase.initialize(
     url: dotenv.get('SUPA_BASE_URL'),
     anonKey: dotenv.get('SUPA_BASE_ANON_KEY'),
-    debug: true,
-    //   accessToken: getAccestoken,
+    accessToken: getAccestoken,
   );
 
   final supa = Supabase.instance;
