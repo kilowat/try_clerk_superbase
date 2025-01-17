@@ -14,16 +14,29 @@ void main() async {
     persistor: _Persistor(),
   );
   await api.initialize();
-  final response = await api.createSignIn(
-    identifier: dotenv.get('USER_ID'),
+  await api.signOut();
+  final response = await api.createSignIn(identifier: dotenv.get('USER_ID'));
+  final signIn = response.client!.signIn!;
+  final attemptResponse = await api.attemptSignIn(
+    signIn,
+    stage: Stage.first,
+    strategy: Strategy.password,
     password: dotenv.get('USER_PASS'),
   );
+
+  final clerkToken = await api.sessionToken();
+  final sessionId = attemptResponse.client!.sessionIds.first;
+  // final templateToken = await api.getTokenWithTemplate('supabase', sessionId);
+  // final getAccestoken = () => api.getTokenWithTemplate('supabase', sessionId);
 
   await Supabase.initialize(
     url: dotenv.get('SUPA_BASE_URL'),
     anonKey: dotenv.get('SUPA_BASE_ANON_KEY'),
-    accessToken: api.sessionToken,
+    debug: true,
+    //   accessToken: getAccestoken,
   );
+
+  final supa = Supabase.instance;
   final todos = await Supabase.instance.client.from('todos').select();
 
   runApp(const MainApp());
@@ -44,6 +57,24 @@ class MainApp extends StatelessWidget {
   }
 }
 
+/*
+Future<String> getTokenWithTemplate(String templateName, sessionId) async {
+  final url = '/client/sessions/${sessionId}/tokens/$templateName';
+
+  final resp = await _fetch(
+    path: url,
+    headers: _headers(HttpMethod.post),
+    method: HttpMethod.post,
+  );
+
+  if (resp.statusCode == HttpStatus.ok) {
+    final body = jsonDecode(resp.body) as Map<String, dynamic>;
+    return body['jwt'] as String;
+  }
+
+  throw Exception('Failed to get template token: ${resp.statusCode}');
+}
+*/
 class _Persistor implements Persistor {
   const _Persistor();
 
