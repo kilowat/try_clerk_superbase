@@ -12,17 +12,18 @@ void main() async {
   await dotenv.load(fileName: ".env");
   WidgetsFlutterBinding.ensureInitialized();
 
-  final api = Api(
+  final clerkApi = Api(
     publishableKey: dotenv.get('CLERK_PUBLISHABLE_KEY'),
     publicKey: dotenv.get('CLERK_PUBLIC_KEY'),
     persistor: _Persistor(),
   );
 
-  await api.initialize();
-  await api.signOut();
-  final response = await api.createSignIn(identifier: dotenv.get('USER_ID'));
+  await clerkApi.initialize();
+  await clerkApi.signOut();
+  final response =
+      await clerkApi.createSignIn(identifier: dotenv.get('USER_ID'));
   final signIn = response.client!.signIn!;
-  final attemptResponse = await api.attemptSignIn(
+  final attemptResponse = await clerkApi.attemptSignIn(
     signIn,
     stage: Stage.first,
     strategy: Strategy.password,
@@ -59,9 +60,6 @@ void main() async {
     anonKey: dotenv.get('SUPA_BASE_ANON_KEY'),
     accessToken: getAccestoken,
   );
-
-  final supa = Supabase.instance;
-  final todos = await Supabase.instance.client.from('todos').select();
 
   runApp(const MainApp());
 }
