@@ -20,25 +20,22 @@ class SupabseService {
   }) async {
     var query = _client.from(table).select(select ?? _defaultSelect);
 
-    // Добавляем условия equals если они есть
     if (equals != null) {
       equals.forEach((key, value) {
-        query = query.eq(key, value);
+        query.eq(key, value);
       });
     }
 
-    // Добавляем сортировку если указана
     if (orderBy != null) {
-      // query = query.order(orderBy, ascending: ascending);
+      query.order(orderBy, ascending: ascending);
     }
 
-    // Добавляем пагинацию если указана
     if (limit != null) {
-      // query = query.limit(limit);
+      query.limit(limit);
     }
 
     if (offset != null) {
-      //  query = query.range(offset, offset + (limit ?? 20) - 1);
+      query.range(offset, offset + (limit ?? 20) - 1);
     }
 
     return await query;

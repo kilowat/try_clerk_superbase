@@ -14,6 +14,7 @@ class ClerkService {
               persistor: const _Persistor(),
             );
   final Api _api;
+
   late final String? _sessionId;
 
   Future<void> initialize() async {

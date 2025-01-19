@@ -1,3 +1,3 @@
-mixin API {
+mixin SupaApi {
   static const todos = 'todos';
 }
