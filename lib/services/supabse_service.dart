@@ -7,6 +7,18 @@ class SupabseService {
     SupabaseClient? client,
   }) : _client = client ?? Supabase.instance.client;
 
+  static Future<void> initialize({
+    required String url,
+    required String anonKey,
+    Future<String> Function()? accessToken,
+  }) async {
+    await Supabase.initialize(
+      url: url,
+      anonKey: anonKey,
+      accessToken: accessToken,
+    );
+  }
+
   static const _defaultSelect = '*';
 
   Future<List<Map<String, dynamic>>> getList({

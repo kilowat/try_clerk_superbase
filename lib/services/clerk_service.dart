@@ -6,18 +6,24 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ClerkService {
-  ClerkService({Api? api})
-      : _api = api ??
-            Api(
-              publishableKey: dotenv.get('CLERK_PUBLISHABLE_KEY'),
-              publicKey: dotenv.get('CLERK_PUBLIC_KEY'),
-              persistor: const _Persistor(),
-            );
-  final Api _api;
-
+  static late Api _api;
   late final String? _sessionId;
+  static late final String? _publicKey;
+  static late final Persistor _persistor;
 
-  Future<void> initialize() async {
+  static Future<void> initialize({
+    required String publishableKey,
+    required String publicKey,
+    Persistor? persistor,
+  }) async {
+    _persistor = persistor ?? const _Persistor();
+    _api = Api(
+      publishableKey: publishableKey,
+      publicKey: publicKey,
+      persistor: _persistor,
+    );
+    _publicKey = publicKey;
+
     await _api.initialize();
   }
 
@@ -35,10 +41,9 @@ class ClerkService {
   }
 
   Future<String> getTemplateToken({String template = 'supabase'}) async {
-    final prefs = await SharedPreferences.getInstance();
-    final publicKeyHash = dotenv.get('CLERK_PUBLIC_KEY').hashCode;
     final clerkClientToken =
-        prefs.getString('_clerkClientToken_$publicKeyHash')!;
+        await _persistor.read('_clerkClientToken_${_publicKey.hashCode}');
+    if (clerkClientToken == null) return '';
 
     final url = Uri.https(
       'neat-bull-18.clerk.accounts.dev',
