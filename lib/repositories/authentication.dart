@@ -5,7 +5,11 @@ class AuthenticationRepository {
       : _service = service ?? ClerkService();
   final ClerkService _service;
 
-  signIn() async {
+  login() async {
     await _service.signin();
+  }
+
+  logout() async {
+    await _service.signOut();
   }
 }

@@ -18,11 +18,16 @@ void main() async {
   await SupabseService.initialize(
     url: dotenv.get('SUPA_BASE_URL'),
     anonKey: dotenv.get('SUPA_BASE_ANON_KEY'),
+    accessToken: ClerkService.getTemplateToken,
   );
-
+  final authenticationRepository = AuthenticationRepository();
+  await authenticationRepository.logout();
+  final apiDatabaseRepository = SupabaseRepository();
+  final todos = await apiDatabaseRepository.readTodos();
+  final todos2 = await apiDatabaseRepository.readTodos();
   runApp(MainApp(
-    apiDatabaseRepository: SupabaseRepository(),
-    authenticationRepository: AuthenticationRepository(),
+    apiDatabaseRepository: apiDatabaseRepository,
+    authenticationRepository: authenticationRepository,
   ));
 }
 

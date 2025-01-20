@@ -31,7 +31,6 @@ class SupabseService {
     int? offset,
   }) async {
     var query = _client.from(table).select(select ?? _defaultSelect);
-
     if (equals != null) {
       equals.forEach((key, value) {
         query.eq(key, value);
@@ -50,7 +49,9 @@ class SupabseService {
       query.range(offset, offset + (limit ?? 20) - 1);
     }
 
-    return await query;
+    final result = await query;
+
+    return result;
   }
 
   Future<Map<String, dynamic>?> getOne({

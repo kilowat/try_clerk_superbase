@@ -27,6 +27,10 @@ class ClerkService {
     await _api.initialize();
   }
 
+  signOut() async {
+    return await _api.signOut();
+  }
+
   signin() async {
     final response = await _api.createSignIn(identifier: dotenv.get('USER_ID'));
     final signIn = response.client!.signIn!;
@@ -40,24 +44,71 @@ class ClerkService {
     _sessionId = attemptResponse.client?.sessionIds.first;
   }
 
-  Future<String> getTemplateToken({String template = 'supabase'}) async {
-    final clerkClientToken =
-        await _persistor.read('_clerkClientToken_${_publicKey.hashCode}');
-    if (clerkClientToken == null) return '';
+  static Future<String> readSessionId() async {
+    return await _persistor.read('_clerkSessionId_${_publicKey.hashCode}') ??
+        '';
+  }
 
-    final url = Uri.https(
-      'neat-bull-18.clerk.accounts.dev',
-      'v1/client/sessions/$_sessionId/tokens/$template',
+  static Future<String> readClerkToken() async {
+    return await _persistor.read('_clerkClientToken_${_publicKey.hashCode}') ??
+        '';
+  }
+
+  static Future<JwtTemplateToken?> readJwtTemplate(String template) async {
+    final key = '_clerkJwt_{$template}';
+    final value = await _persistor.read(key);
+    if (value == null) {
+      return null;
+    }
+
+    final jsonValue = jsonDecode(value);
+    return JwtTemplateToken.fromJson(jsonValue);
+  }
+
+  static Future<void> writeJwtTemplate(
+      String template, String jwtValue, String sessId) async {
+    final key = '_clerkJwt_{$template}';
+    final value = JwtTemplateToken(sessId: sessId, value: jwtValue);
+    await _persistor.write(key, jsonEncode(value));
+  }
+
+  static Future<String> getTemplateToken({String template = 'supabase'}) async {
+    final jwtToken = await readJwtTemplate(template);
+    final sessionId = await readSessionId();
+    final clerkToken = await readClerkToken();
+
+    if (jwtToken != null && sessionId == jwtToken.sessId) {
+      return jwtToken.value;
+    }
+
+    final jwtTemplateToken = await _requestTemplateToken(
+      template,
+      sessionId,
+      clerkToken,
     );
 
+    await writeJwtTemplate(template, jwtTemplateToken, sessionId);
+
+    return jwtTemplateToken;
+  }
+
+  static Future<String> _requestTemplateToken(
+    String template,
+    String sessionId,
+    String clerkToken,
+  ) async {
+    final url = Uri.https(
+      _api.domain,
+      'v1/client/sessions/$sessionId/tokens/$template',
+    );
     final response = await http.post(
       url,
       headers: {
-        HttpHeaders.authorizationHeader: clerkClientToken,
+        HttpHeaders.authorizationHeader: clerkToken,
         HttpHeaders.acceptHeader: 'application/json',
       },
     );
-
+    print('requiest jwt');
     return jsonDecode(response.body)['jwt'] as String;
   }
 }
@@ -82,4 +133,19 @@ class _Persistor implements Persistor {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(key, value);
   }
+}
+
+class JwtTemplateToken {
+  JwtTemplateToken({required this.sessId, required this.value});
+  final String sessId;
+  final String value;
+
+  JwtTemplateToken.fromJson(Map<String, dynamic> json)
+      : sessId = json['sessId'] as String,
+        value = json['value'] as String;
+
+  Map<String, dynamic> toJson() => {
+        'sessId': sessId,
+        'value': value,
+      };
 }

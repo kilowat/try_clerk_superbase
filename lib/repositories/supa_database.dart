@@ -11,6 +11,6 @@ class SupabaseRepository implements ApiDatabaseRepository {
 
   @override
   readTodos() async {
-    return await _service.getList(table: SupaApi.todos);
+    return await _service.getList(table: SupaApi.todos, select: '*');
   }
 }
