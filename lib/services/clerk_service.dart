@@ -45,7 +45,7 @@ class ClerkService {
       '_clerkSessionId_${_publicKey.hashCode}';
 
   static String get _clerkClientTokenKey =>
-      ' _clerkClientToken_${_publicKey.hashCode}';
+      '_clerkClientToken_${_publicKey.hashCode}';
 
   static String _getClerkJwtKey(String template) {
     return '_clerkJwt_{$template}';
@@ -83,8 +83,6 @@ class ClerkService {
     final clerkToken = await readClerkToken();
 
     if (sessionId.isEmpty) {
-      final key = _getClerkJwtKey(template);
-      _persistor.delete(key);
       return '';
     }
 
