@@ -80,7 +80,6 @@ class ClerkService {
   static Future<String> getTemplateToken({String template = 'supabase'}) async {
     final jwtToken = await readJwtTemplate(template);
     final sessionId = await readSessionId();
-    final clerkToken = await readClerkToken();
 
     if (sessionId.isEmpty) {
       return '';
@@ -90,6 +89,7 @@ class ClerkService {
       return jwtToken.value;
     }
 
+    final clerkToken = await readClerkToken();
     final jwtTemplateToken = await _requestTemplateToken(
       template,
       sessionId,
