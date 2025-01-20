@@ -7,7 +7,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class ClerkService {
   static late Api _api;
-  late final String? _sessionId;
   static late final String? _publicKey;
   static late final Persistor _persistor;
 
@@ -40,22 +39,28 @@ class ClerkService {
       strategy: Strategy.password,
       password: dotenv.get('USER_PASS'),
     );
+  }
 
-    _sessionId = attemptResponse.client?.sessionIds.first;
+  static String get _clerkSessIdTokenKey =>
+      '_clerkSessionId_${_publicKey.hashCode}';
+
+  static String get _clerkClientTokenKey =>
+      ' _clerkClientToken_${_publicKey.hashCode}';
+
+  static String _getClerkJwtKey(String template) {
+    return '_clerkJwt_{$template}';
   }
 
   static Future<String> readSessionId() async {
-    return await _persistor.read('_clerkSessionId_${_publicKey.hashCode}') ??
-        '';
+    return await _persistor.read(_clerkSessIdTokenKey) ?? '';
   }
 
   static Future<String> readClerkToken() async {
-    return await _persistor.read('_clerkClientToken_${_publicKey.hashCode}') ??
-        '';
+    return await _persistor.read(_clerkClientTokenKey) ?? '';
   }
 
   static Future<JwtTemplateToken?> readJwtTemplate(String template) async {
-    final key = '_clerkJwt_{$template}';
+    final key = _getClerkJwtKey(template);
     final value = await _persistor.read(key);
     if (value == null) {
       return null;
@@ -67,7 +72,7 @@ class ClerkService {
 
   static Future<void> writeJwtTemplate(
       String template, String jwtValue, String sessId) async {
-    final key = '_clerkJwt_{$template}';
+    final key = _getClerkJwtKey(template);
     final value = JwtTemplateToken(sessId: sessId, value: jwtValue);
     await _persistor.write(key, jsonEncode(value));
   }
@@ -76,6 +81,12 @@ class ClerkService {
     final jwtToken = await readJwtTemplate(template);
     final sessionId = await readSessionId();
     final clerkToken = await readClerkToken();
+
+    if (sessionId.isEmpty) {
+      final key = _getClerkJwtKey(template);
+      _persistor.delete(key);
+      return '';
+    }
 
     if (jwtToken != null && sessionId == jwtToken.sessId) {
       return jwtToken.value;
@@ -108,7 +119,11 @@ class ClerkService {
         HttpHeaders.acceptHeader: 'application/json',
       },
     );
-    print('requiest jwt');
+
+    if (response.statusCode != 200) {
+      throw Exception('Request template token response error');
+    }
+
     return jsonDecode(response.body)['jwt'] as String;
   }
 }

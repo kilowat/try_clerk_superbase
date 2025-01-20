@@ -21,10 +21,11 @@ void main() async {
     accessToken: ClerkService.getTemplateToken,
   );
   final authenticationRepository = AuthenticationRepository();
-  await authenticationRepository.logout();
+  //await authenticationRepository.logout();
+  await authenticationRepository.login();
   final apiDatabaseRepository = SupabaseRepository();
   final todos = await apiDatabaseRepository.readTodos();
-  final todos2 = await apiDatabaseRepository.readTodos();
+
   runApp(MainApp(
     apiDatabaseRepository: apiDatabaseRepository,
     authenticationRepository: authenticationRepository,

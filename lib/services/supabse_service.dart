@@ -19,18 +19,16 @@ class SupabseService {
     );
   }
 
-  static const _defaultSelect = '*';
-
   Future<List<Map<String, dynamic>>> getList({
     required String table,
-    String? select,
+    String select = '*',
     Map<String, dynamic>? equals,
     String? orderBy,
     bool ascending = false,
     int? limit,
     int? offset,
   }) async {
-    var query = _client.from(table).select(select ?? _defaultSelect);
+    var query = _client.from(table).select(select);
     if (equals != null) {
       equals.forEach((key, value) {
         query.eq(key, value);
@@ -57,13 +55,10 @@ class SupabseService {
   Future<Map<String, dynamic>?> getOne({
     required String table,
     required String id,
-    String? select,
+    String select = '*',
   }) async {
-    final response = await _client
-        .from(table)
-        .select(select ?? _defaultSelect)
-        .eq('id', id)
-        .single();
+    final response =
+        await _client.from(table).select(select).eq('id', id).single();
 
     return response;
   }
@@ -71,13 +66,10 @@ class SupabseService {
   Future<Map<String, dynamic>> insert({
     required String table,
     required Map<String, dynamic> data,
-    String? select,
+    String select = '*',
   }) async {
-    final response = await _client
-        .from(table)
-        .insert(data)
-        .select(select ?? _defaultSelect)
-        .single();
+    final response =
+        await _client.from(table).insert(data).select(select).single();
 
     return response;
   }
@@ -85,14 +77,13 @@ class SupabseService {
   Future<Map<String, dynamic>> upsert({
     required String table,
     required Map<String, dynamic> data,
-    String? select,
+    String select = '*',
   }) async {
-    final response = await _client
-        .from(table)
-        .upsert(data)
-        .select(select ?? _defaultSelect)
-        .single();
+    final response =
+        await _client.from(table).upsert(data).select(select).single();
 
     return response;
   }
 }
+
+class SupabaseApiException implements Exception {}
