@@ -1,4 +1,4 @@
-import 'package:try_clerk_superbase/repositories/api_database.dart';
+import 'package:try_clerk_superbase/import.dart';
 
 class FakeDataBaseRepository implements ApiDatabaseRepository {
   @override

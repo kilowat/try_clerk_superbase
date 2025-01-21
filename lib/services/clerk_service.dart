@@ -26,11 +26,16 @@ class ClerkService {
     await _api.initialize();
   }
 
-  signOut() async {
+  Future<User?> currentUser() async {
+    final client = await _api.currentClient();
+    return client.user;
+  }
+
+  Future<Client> signOut() async {
     return await _api.signOut();
   }
 
-  signin() async {
+  Future<ApiResponse> signIn() async {
     final response = await _api.createSignIn(identifier: dotenv.get('USER_ID'));
     final signIn = response.client!.signIn!;
     final attemptResponse = await _api.attemptSignIn(
@@ -39,6 +44,7 @@ class ClerkService {
       strategy: Strategy.password,
       password: dotenv.get('USER_PASS'),
     );
+    return attemptResponse;
   }
 
   static String get _clerkSessIdTokenKey =>

@@ -1,5 +1,4 @@
-import 'package:try_clerk_superbase/repositories/api_database.dart';
-import 'package:try_clerk_superbase/services/supabse_service.dart';
+import 'package:try_clerk_superbase/import.dart';
 
 class SupabaseRepository implements ApiDatabaseRepository {
   SupabaseRepository({

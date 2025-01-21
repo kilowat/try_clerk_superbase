@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:try_clerk_superbase/repositories/api_database.dart';
-import 'package:try_clerk_superbase/repositories/authentication.dart';
-import 'package:try_clerk_superbase/repositories/supa_database.dart';
-import 'package:try_clerk_superbase/services/clerk_service.dart';
-import 'package:try_clerk_superbase/services/supabse_service.dart';
+import 'package:try_clerk_superbase/import.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
