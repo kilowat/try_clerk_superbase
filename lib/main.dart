@@ -18,7 +18,7 @@ void main() async {
   );
   final authenticationRepository = AuthenticationRepository();
   //await authenticationRepository.logout();
-  await authenticationRepository.login();
+  await authenticationRepository.authorize();
   final apiDatabaseRepository = SupabaseRepository();
   final todos = await apiDatabaseRepository.readTodos();
 

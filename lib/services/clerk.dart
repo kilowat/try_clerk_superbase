@@ -26,7 +26,7 @@ class ClerkService {
     await _api.initialize();
   }
 
-  Future<User?> currentUser() async {
+  Future<User?> profile() async {
     final client = await _api.currentClient();
     return client.user;
   }
@@ -168,3 +168,5 @@ class JwtTemplateToken {
         'value': value,
       };
 }
+
+class NeedAuthException implements Exception {}
